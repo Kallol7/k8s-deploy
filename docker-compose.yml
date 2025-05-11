@@ -1,0 +1,21 @@
+services:
+  myapp:
+    container_name: myapp
+    # build: .
+    image: kallol7/rapid-app:1.0
+    ports:
+      - "8080:8000"
+    environment:
+      - SECRET_KEY=/run/secrets/secret_key
+
+      - SOCIAL_AUTH_GOOGLE_OAUTH2_KEY=SkipItForNow
+      - SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET=SkipItForNow
+      - STRIPE_PUBLIC_KEY=SkipItForNow
+      - STRIPE_SECRET_KEY=SkipItForNow
+    
+    secrets:
+       - secret_key
+    command: /bin/sh -c 'python manage.py migrate && python manage.py runserver 0.0.0.0:8000'
+secrets:
+  secret_key:
+    file: ./secrets/secret_key.txt

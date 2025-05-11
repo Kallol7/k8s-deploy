@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: rapid-app
+  name: rapid-app-deployment
+  labels:
+    app: rapid
+spec:
+  replicas: 1
+  
+  selector:
+    matchLabels:
+      app: rapid
+  
+  template:  
+    metadata:
+      labels:
+        app: rapid
+    spec:
+      containers:
+        - image: kallol7/rapid-app:1.0
+          name: rapid-app
+          
+          command: ["/bin/sh", "-c"]
+          args: ["python manage.py migrate && python manage.py runserver 0.0.0.0:8000"]
+          
+          # kubectl create namespace rapid-app
+          # kubectl create secret generic rapid-app-secret --from-literal=SECRET_KEY='paste_here' --namespace=rapid-app
+          # NOTE: Having quotes without proper closing will mess up the secret (when creating secret using the code above)
+          env:
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: rapid-app-secret
+                  key: SECRET_KEY
+            
+            - name: SOCIAL_AUTH_GOOGLE_OAUTH2_KEY
+              value: SkipItForNow
+            - name: SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET
+              value: SkipItForNow
+            - name: STRIPE_PUBLIC_KEY
+              value: SkipItForNow
+            - name: STRIPE_SECRET_KEY
+              value: SkipItForNow
+                    
+          ports:
+            - containerPort: 8000
+              protocol: TCP
+          
+          resources:
+              requests:
+                cpu: "100m"
+                memory: "128Mi"
+              limits:
+                cpu: "250m"
+                memory: "256Mi"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: rapid-app
+  name: rapid-app-service
+  labels:
+    app: rapid
+spec:
+  selector:
+    app: rapid
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8000
+  type: NodePort
